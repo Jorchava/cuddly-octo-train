@@ -37,10 +37,9 @@ This project was created as a technical demo to showcase **game loop design, ent
 ### Clone the repository, install dependencies and run
 ```bash
 git clone https://github.com/jorchava/web-games/beat-em-up.git
+
 cd beat-em-up
 
-```bash
 npm install
 
-```bash
 npm run dev
