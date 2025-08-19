@@ -1,0 +1,22 @@
+{
+  "name": "beat-em-up",
+  "version": "1.0.0",
+  "main": "index.js",
+  "scripts": {
+    "dev": "vite",
+    "build": "vite build",
+    "preview": "vite preview"
+  },
+  "keywords": ["pixijs", "webgl", "pixi", "HTML5 game"],
+  "author": "jorchava",
+  "license": "CC-BY-4.0",
+  "description": "Beat'em up scene using PixiJS @latest ts vite",
+  "dependencies": {
+    "@pixi/filter-crt": "^5.1.1",
+    "pixi.js": "^8.12.0"
+  },
+  "devDependencies": {
+    "typescript": "^5.9.2",
+    "vite": "^7.1.2"
+  }
+}
