@@ -1,14 +1,14 @@
 # Beat-em-up Demo (PixiJS + TypeScript)
 
-A simple **2D beat-em-up extract** (Yie-Ar KungFu early stuff of the beat'em ups) built with [PixiJS](https://pixijs.com/) and TypeScript. At that time it was v5-v6 but did some upgrades to use v8  
-This project was created as a technical demo to showcase **game loop design, entity systems, collision handling, and project structure**.
+A simple **2D beat-em-up extract** (Yie-Ar KungFu-like ish early stuff of the beat'em ups) built with [PixiJS](https://pixijs.com/) and TypeScript. At that time it was v5-v6 and vanilla JS but did some upgrades to use v8 and TS 
+This project was created as a technical demo to showcase **game loop design, entity systems, collision handling, PixiJS(WebGL) Javascript game engine and project structure**. Intentionally there are a couple of comments left in the source code so that other than version controlling we can tell some of the challenges faced while upgrading to v8 and refactoring.
 
 ---
 
 ## 🎮 Features
 
 - **Player movement** (arrow keys / WASD)  
-- **Basic attack system** (player can damage enemy with hitbox)  
+- **Basic attack system** (player can damage enemy with hitbox: S, Space bar jump attack combo, Q)  
 - **Enemy AI**: enemy chases player while alive  
 - **Collision system**: player hitbox detects overlap with enemy  
 - **Health system**: entities take damage, knockback, and can die  
@@ -21,6 +21,14 @@ This project was created as a technical demo to showcase **game loop design, ent
   - `core/` → Input handling (keyboard)  
   - `main.ts` → Game loop, spawning, high-level orchestration  
 
+- **Next features:** 
+1. Assets 
+2. initial screen with music and in game music 
+3. game over screen / retry
+4. collision unit test
+5. custom shader (WebGL)
+6. AI and weapongs for different enemies 
+
 ---
 
 ## 🛠️ Tech Stack
@@ -29,6 +37,43 @@ This project was created as a technical demo to showcase **game loop design, ent
 - [TypeScript](https://www.typescriptlang.org/) → strong typing & maintainability  
 - [Vite](https://vitejs.dev/) (or any bundler of choice) → fast local dev server  
 - Project is organized in a way similar to larger games (entities/systems separation).  
+
+---
+
+## 📦 Project Structure
+
+```
+/src
+  /core
+    Keyboard.ts
+  /entities
+    Player.ts
+    Enemy.ts
+  /systems
+    CollisionSystems.ts
+  /ui
+    HealthBar.ts
+  main.ts
+index.html
+styles.css
+README.md
+
+```
+
+---
+
+## 📝 License
+
+Shield: [![CC BY 4.0][cc-by-shield]][cc-by]
+
+This work is licensed under a
+[Creative Commons Attribution 4.0 International License][cc-by].
+
+[![CC BY 4.0][cc-by-image]][cc-by]
+
+[cc-by]: http://creativecommons.org/licenses/by/4.0/
+[cc-by-image]: https://i.creativecommons.org/l/by/4.0/88x31.png
+[cc-by-shield]: https://img.shields.io/badge/License-CC%20BY%204.0-lightgrey.svg
 
 ---
 
