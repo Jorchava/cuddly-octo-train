@@ -28,6 +28,7 @@ This project was created as a technical demo to showcase **game loop design, ent
 4. collision unit test
 5. custom shader (WebGL)
 6. AI and weapongs for different enemies 
+7. explore json atlases for assets switch
 
 ---
 
