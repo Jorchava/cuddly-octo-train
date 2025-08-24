@@ -1,6 +1,6 @@
 // wire the scene
 //import * as PIXI from 'pixi.js'; v8 APIs changed GRaphics etc
-import { Application, Graphics, Filter } from 'pixi.js';
+import { Application, Graphics, Filter, Assets } from 'pixi.js';
 import { Keyboard } from './core/Keyboard';
 import { Player } from './entities/Player';
 import { Enemy } from './entities/Enemy';
@@ -8,9 +8,13 @@ import { intersects } from './systems/CollisionSystem';
 import { HealthBar } from './ui/HealthBar';
 // npm i @pixi/filter-crt upgrade for pixiv8
 import { CRTFilter } from '@pixi/filter-crt';
+import { AnimationManager } from './core/AnimationManager';
 
 (async function start() {
     // 1 app
+    await Assets.init({
+        basePath: '/' //public assets
+    });
     // v8 needs init async await
     const app = new Application();
     //const app = new PIXI.Application({
@@ -52,9 +56,12 @@ import { CRTFilter } from '@pixi/filter-crt';
     app.stage.filters = [crt as unknown as Filter];
 
     // 5 entities
+    // load animations before creating entities
+    const playerAnimations = await AnimationManager.loadPlayerAnimations();
+    const enemyAnimations = await AnimationManager.loadEnemyAnimations();
     const kb = new Keyboard();
-    const player = new Player();
-    const enemy = new Enemy(720, FLOOR_Y);
+    const player = new Player(playerAnimations);
+    const enemy = new Enemy(720, FLOOR_Y, enemyAnimations);
     app.stage.addChild(player, enemy);
 
     // 6 ui v8 position app.screen

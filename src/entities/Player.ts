@@ -1,11 +1,17 @@
-// replace player sprite later
 // import * as PIXI from 'pixi.js';
-import { Container, Graphics } from 'pixi.js';
+import { Container, Graphics, Sprite } from 'pixi.js';
 import { Keyboard } from '../core/Keyboard';
+import { AnimationSequence } from '../core/AnimationManager';
 
-// v8 -PIXI
+// v8 -PIXI Container
 export class Player extends Container {
-    body: Graphics;
+    private sprite: Sprite;
+    private animations: Record<string, AnimationSequence>;
+    private currentAnim?: AnimationSequence;
+    private frameIndex = 0;
+    private frameTime = 0;
+
+    //body: Graphics;
     vx = 0;
     vy = 0;
     speed = 220;
@@ -20,12 +26,32 @@ export class Player extends Container {
     hitBox?: Graphics;
     alive = true;
 
-    constructor() {
+    constructor(animations: Record<string, AnimationSequence>) {
         super();
         // 40x64 rectangle
-        this.body = new Graphics().fill(0x4da3ff).rect(-20, -64, 40, 64).fill();
-        this.addChild(this.body);
+        //this.body = new Graphics().fill(0x4da3ff).rect(-20, -64, 40, 64).fill();
+        //this.addChild(this.body);
+        this.animations = animations;
+
+        // default first frame of idle
+        this.sprite = new Sprite(this.animations.idle.frames[0]);
+        this.sprite.anchor.set(0.5, 1); // center horizontally, aligned bottom
+        this.addChild(this.sprite);
         this.position.set(160, 360);
+        this.playAnimation('idle');
+    }
+
+    private playAnimation(name: string, force = false) {
+        // don't restart if already playing
+        if (!force && this.currentAnim?.name === name) return;
+
+        const anim = this.animations[name];
+        if (!anim) return;
+
+        this.currentAnim = anim;
+        this.frameIndex = 0;
+        this.frameTime = 0;
+        this.sprite.texture = anim.frames[0];
     }
 
     update(dt: number, kb: Keyboard, floorY: number) {
@@ -43,6 +69,38 @@ export class Player extends Container {
             this.facing = 1;
         } else {
             this.vx = 0;
+        }
+
+        // animation states
+        if (!this.onGround) {
+            this.playAnimation('jump');
+        } else if (this.vx !== 0) {
+            this.playAnimation('walk');
+        } else {
+            this.playAnimation('idle');
+        }
+
+        // flip based on facing direction
+        this.sprite.scale.x = this.facing;
+
+        // update animation frames
+        if (this.currentAnim) {
+            this.frameTime += dt;
+            if (this.frameTime >= (this.currentAnim.speed || 0.1)) {
+                this.frameTime = 0;
+                this.frameIndex++;
+
+                if (this.frameIndex >= this.currentAnim.frames.length) {
+                    if (this.currentAnim.loop) {
+                        this.frameIndex = 0;
+                    } else {
+                        this.playAnimation('idle');
+                        return;
+                    }
+                }
+
+                this.sprite.texture = this.currentAnim.frames[this.frameIndex];
+            }
         }
 
         // jump
@@ -67,6 +125,7 @@ export class Player extends Container {
         // atk
         this.attackCooldown -= dt;
         if ((kb.isDown(' ') || kb.isDown('q') || kb.isDown('s') || kb.isDown('z')) && this.attackCooldown <= 0) {
+            this.playAnimation('punch');
             this.swing();
             this.attackCooldown = this.attackRate;
         }
@@ -99,9 +158,9 @@ export class Player extends Container {
     damage(amount: number) {
         if (!this.alive) return; // ghost collisions
         this.hp = Math.max(0, this.hp - amount);
-        // visual feedback
-        this.body.tint = 0xff6262;
-        setTimeout(() => (this.body.tint = 0xffffff), 90);
+        // visual feedback, now using sprite instead of body
+        this.sprite.tint = 0xff6262;
+        setTimeout(() => (this.sprite.tint = 0xffffff), 90);
 
         if (this.hp <= 0) {
             this.die();
