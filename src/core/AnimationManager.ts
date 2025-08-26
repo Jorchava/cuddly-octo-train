@@ -65,7 +65,10 @@ export class AnimationManager {
             punch: { path: 'assets/player/punch.png', frames: 3 },
             kick: { path: 'assets/player/kick.png', frames: 5 },
             jump: { path: 'assets/player/jump.png', frames: 4 },
-            hurt: { path: 'assets/player/hurt.png', frames: 2 }
+            hurt: { path: 'assets/player/hurt.png', frames: 2 },
+            dive_kick: { path: 'assets/player/dive_kick.png', frames: 5},
+            jab: { path: 'assets/player/jab.png', frames: 3},
+            jump_kick: { path: 'assets/player/jump_kick.png', frames: 3}
         };
 
         // loading each animation sequence
@@ -95,8 +98,8 @@ export class AnimationManager {
         const sequences = {
             idle: { path: 'assets/enemy/idle.png', frames: 4 },
             walk: { path: 'assets/enemy/walk.png', frames: 4 },
-            punch: { path: 'assets/enemy/punch.png', frames: 3 },
-            hurt: { path: 'assets/enemy/hurt.png', frames: 2 },
+            punch: { path: 'assets/enemy/punch.png', frames: 3, loop: false },
+            hurt: { path: 'assets/enemy/hurt.png', frames: 2, loop: false },
             // check if better slice or start off 3-4
             die: { path: 'assets/enemy/hurt.png', frames: 4 }
         };
