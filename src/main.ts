@@ -1,7 +1,6 @@
 import { Application, Graphics, Filter, Assets } from 'pixi.js';
 import { Keyboard } from './core/Keyboard';
 import { PlayerConfig } from './config/PlayerConfig';
-import { EnemyConfig } from './config/EnemyConfig';
 import { Player } from './entities/Player';
 import { Enemy } from './entities/Enemy';
 import { intersects } from './systems/CollisionSystem';

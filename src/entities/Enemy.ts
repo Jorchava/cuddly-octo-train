@@ -2,6 +2,7 @@ import { Container, Sprite, Graphics, Rectangle } from 'pixi.js';
 import { Player } from './Player';
 import { AnimationSequence } from '../core/AnimationManager';
 import { EnemyConfig } from '../config/EnemyConfig';
+import { intersects } from '../systems/CollisionSystem';
 export class Enemy extends Container {
     private sprite: Sprite;
     private animations: Record<string, AnimationSequence>;
@@ -10,9 +11,10 @@ export class Enemy extends Container {
     private frameTime = 0;
     private facing = -1;
     private vx = 0;
-    private attackCooldown = 0;
+    private attackCooldown = EnemyConfig.combat.attackRate;
     private tintTimeout?: number;
     private isAttacking = false;
+    private hitBox?: Graphics;
 
     public hp: number = EnemyConfig.combat.maxHp;
     public readonly maxHp = EnemyConfig.combat.maxHp;
@@ -38,17 +40,21 @@ export class Enemy extends Container {
         this.facing = Math.sign(dx);
         this.sprite.scale.x = -this.facing;
 
-        if (Math.abs(dx) > EnemyConfig.movement.detectionRange) {
-            this.vx = Math.sign(dx) * EnemyConfig.movement.speed;
-            this.playAnimation('walk');
-        } else {
-            this.vx = 0;
-            this.playAnimation('idle');
+        if (!this.isAttacking) {
+            if (Math.abs(dx) > EnemyConfig.combat.attackRange) {
+                this.vx = Math.sign(dx) * EnemyConfig.movement.speed;
+                this.playAnimation('walk');
+            } else {
+                this.vx = 0;
+                this.playAnimation('idle');
+            }
+
+            this.x += this.vx * dt;
         }
 
-        this.x += this.vx * dt;
         this.updateAnimations(dt);
         this.updateCombat(dt, dx, player);
+        this.updateHitbox(dt);
     }
 
     private updateAnimations(dt: number) {
@@ -62,7 +68,7 @@ export class Enemy extends Container {
                     if (this.currentAnim.loop) {
                         this.frameIndex = 0;
                     } else {
-                        if (this.isAttacking) {
+                        if (this.isAttacking && this.currentAnim.name === 'punch') {
                             this.isAttacking = false;
                         }
                         this.playAnimation('idle');
@@ -80,7 +86,7 @@ export class Enemy extends Container {
         this.alive = true;
         this.visible = true;
         this.vx = 0;
-        this.attackCooldown = 0;
+        this.attackCooldown = EnemyConfig.combat.attackRate;
         this.facing = -1;
         this.currentAnim = undefined;
         this.playAnimation('idle');
@@ -121,27 +127,72 @@ export class Enemy extends Container {
         this.sprite.texture = anim.frames[0];
     }
 
+    private updateHitbox(dt: number) {
+        if (this.hitBox) {
+            this.hitBox.alpha -= dt * 3;
+            if (this.hitBox.alpha <= 0) {
+                this.hitBox.destroy();
+                this.hitBox = undefined;
+            }
+        }
+    }
+
     attack(player: Player) {
-        if (!this.alive) return;
+        if (!this.alive || this.isAttacking) return;
+
         this.isAttacking = true;
+        this.vx = 0;
         this.playAnimation('punch', true);
-        player.damage(EnemyConfig.combat.attackDamage);
-        player.knockback(this.x);
+
+        // Create hitbox for attack
+        const hitboxWidth = 30;
+        const hitboxHeight = 20;
+        const hitboxOffsetX = this.facing > 0 ? 24 : -24 - hitboxWidth;
+        
+        const hb = new Graphics()
+            .fill(0xffd166)
+            .rect(0, 0, hitboxWidth, hitboxHeight)
+            .fill();
+            
+        hb.position.set(this.x + hitboxOffsetX, this.y - 42);
+        hb.alpha = 0.8;
+        this.parent?.addChild(hb);
+        this.hitBox = hb;
+
+        if (intersects(this.hitBox, player)) {
+            player.damage(EnemyConfig.combat.attackDamage);
+            player.knockback(this.x);
+        }
+
+        setTimeout(() => {
+            if (this.hitBox) {
+                this.hitBox.destroy();
+                this.hitBox = undefined;
+            }
+            this.isAttacking = false;
+        }, EnemyConfig.combat.attackRate * 1000);
     }
 
     damage(amount: number) {
         if (!this.alive) return;
+
         this.hp = Math.max(0, this.hp - amount);
         this.sprite.tint = EnemyConfig.visual.hitFlashColor;
         this.playAnimation('hurt', true);
-        if (this.tintTimeout) clearTimeout(this.tintTimeout);
+
+        if (this.tintTimeout) {
+            clearTimeout(this.tintTimeout);
+        }
+        
         this.tintTimeout = setTimeout(
             () => (this.sprite.tint = EnemyConfig.visual.normalTint),
             EnemyConfig.combat.hitFlashDuration
         );
 
+        this.knockback(this.x);
+
         if (this.hp <= 0) {
-            this.die();
+            setTimeout(() => this.die(), 200);
         }
     }
 

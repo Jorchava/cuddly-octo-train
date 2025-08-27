@@ -1,4 +1,3 @@
-// input keyboard helper query current key state anytime.
 export class Keyboard {
     private keys: Record<string, boolean> = {};
     private keyPressTime: Record<string, number> = {};
