@@ -1,79 +1,101 @@
-// replace player sprite later
-// import * as PIXI from 'pixi.js';
-import { Container, Graphics } from 'pixi.js';
+import { Container, Graphics, Sprite, Rectangle } from 'pixi.js';
 import { Keyboard } from '../core/Keyboard';
-
-// v8 -PIXI
+import { AnimationSequence } from '../core/AnimationManager';
+import { PlayerConfig, AttackType } from '../config/PlayerConfig';
 export class Player extends Container {
-    body: Graphics;
-    vx = 0;
-    vy = 0;
-    speed = 220;
-    jumpStrength = 460;
-    gravity = 1200;  
-    onGround = false;
-    facing = 1; // -1 left
-    hp = 100;
-    maxHp = 100;
-    attackCooldown = 0;
-    attackRate = 0.35; // between next attack
-    hitBox?: Graphics;
-    alive = true;
+    // Animation properties
+    private sprite: Sprite;
+    private animations: Record<string, AnimationSequence>;
+    private currentAnim?: AnimationSequence;
+    private frameIndex = 0;
+    private frameTime = 0;
 
-    constructor() {
+    // Combat properties
+    private comboWindow = 0;
+    private currentAttack: AttackType | null = null;
+    private attackCooldown = 0;
+    private hitBox?: Graphics;
+
+    // Physics properties
+    private vx = 0;
+    private vy = 0;
+
+    // So enemy can access them
+    protected onGround = false;
+    protected facing = 1;
+
+    // Combat state public as they are part of the public API
+    public hp: number = PlayerConfig.combat.maxHp;
+    public readonly maxHp = PlayerConfig.combat.maxHp;
+    public alive = true;
+
+    constructor(animations: Record<string, AnimationSequence>) {
         super();
-        // 40x64 rectangle
-        this.body = new Graphics().fill(0x4da3ff).rect(-20, -64, 40, 64).fill();
-        this.addChild(this.body);
-        this.position.set(160, 360);
+        this.animations = animations;
+        this.sprite = new Sprite(this.animations.idle.frames[0]);
+        this.sprite.anchor.set(
+            PlayerConfig.animation.spriteAnchor.x,
+            PlayerConfig.animation.spriteAnchor.y
+        );
+        this.addChild(this.sprite);
+        this.position.set(
+            PlayerConfig.position.initial.x,
+            PlayerConfig.position.initial.y
+        );
+        this.playAnimation('idle');
     }
 
-    update(dt: number, kb: Keyboard, floorY: number) {
-        // early exit if dead, later retry or game over screen
+    update(dt: number, kb: Keyboard, floorY: number, enemy?: Container) {
         if (!this.alive) return;
-        // <= and =>
+
+        this.updateMovement(dt, kb, enemy);
+        this.updateCombat(dt, kb);
+        this.updateAnimations(dt);
+        this.updatePhysics(dt, floorY);
+        this.updateHitbox(dt);
+    }
+
+    private updateMovement(dt: number, kb: Keyboard, enemy?: Container) {
         const left = kb.isDown('arrowleft') || kb.isDown('a');
         const right = kb.isDown('arrowright') || kb.isDown('d');
+        const jump = kb.isDown('arrowup') || kb.isDown('w') || kb.isDown(' ');
 
         if (left && !right) {
-            this.vx = -this.speed;
+            this.vx = -PlayerConfig.movement.speed;
             this.facing = -1;
         } else if (right && !left) {
-            this.vx = this.speed;
+            this.vx = PlayerConfig.movement.speed;
             this.facing = 1;
         } else {
             this.vx = 0;
+            // auto update facing to enemy when not moving
+            if (enemy && 'alive' in enemy && (enemy as any).alive) {
+                this.facing = enemy.x > this.x ? 1 : -1;
+            }
         }
 
-        // jump
-        const jump = kb.isDown('arrowup') || kb.isDown('w') || kb.isDown(' ');
         if (jump && this.onGround) {
-            this.vy = -this.jumpStrength;
+            this.vy = -PlayerConfig.movement.jumpStrength;
             this.onGround = false;
+            this.playAnimation('jump');
         }
+    }
 
-        // gravity + integrate
-        this.vy += this.gravity * dt;
+    private updatePhysics(dt: number, floorY: number) {
+        this.vy += PlayerConfig.movement.gravity * dt;
         this.x += this.vx * dt;
         this.y += this.vy * dt;
 
-        // ground
         if (this.y >= floorY) {
             this.y = floorY;
             this.vy = 0;
             this.onGround = true;
         }
+    }
 
-        // atk
-        this.attackCooldown -= dt;
-        if ((kb.isDown(' ') || kb.isDown('q') || kb.isDown('s') || kb.isDown('z')) && this.attackCooldown <= 0) {
-            this.swing();
-            this.attackCooldown = this.attackRate;
-        }
-
-        // hitbox
+    private updateHitbox(dt: number) {
         if (this.hitBox) {
-            this.hitBox.alpha -= dt * 3;
+            this.hitBox.alpha -= dt * PlayerConfig.combat.hitboxFadeSpeed;
             if (this.hitBox.alpha <= 0) {
                 this.parent?.removeChild(this.hitBox);
                 this.hitBox.destroy();
@@ -82,37 +104,182 @@ export class Player extends Container {
         }
     }
 
+    private executeAttack(type: AttackType) {
+        const attackConfig = PlayerConfig.combat.attacks[type];
+        this.currentAttack = type;
+        this.playAnimation(type, true);
+        this.swing();
+        this.attackCooldown = attackConfig.duration;
+        
+        setTimeout(() => {
+            if (this.currentAttack === type) {
+                this.currentAttack = null;
+            }
+        }, attackConfig.duration * 1000);
+    }
+
     swing() {
-        if (!this.alive) return;
-        // simulate a punch rectangle
-        const w = 30;
-        const h = 20;
-        const offsetX = this.facing > 0 ? 24 : -24 - w;
-        // check later why v8 Graphics api just rect fill didn't work
-        const hb = new Graphics().fill(0xffd166).rect(0, 0, w, h).fill();
-        hb.position.set(this.x + offsetX, this.y - 42);
-        hb.alpha = 0.8;
+        if (!this.alive || !this.currentAttack) return;
+
+        const config = PlayerConfig.combat.attacks[this.currentAttack].hitbox;
+        const offsetX = this.facing > 0 ? config.offsetX : -config.offsetX - config.width;
+        
+        const hb = new Graphics()
+            .fill(PlayerConfig.visual.hitboxColor)
+            .rect(0, 0, config.width, config.height)
+            .fill();
+
+        hb.position.set(this.x + offsetX, this.y - config.height * 1.4);
+        hb.alpha = PlayerConfig.visual.hitboxAlpha;
         this.parent?.addChild(hb);
         this.hitBox = hb;
     }
 
-    damage(amount: number) {
-        if (!this.alive) return; // ghost collisions
+    private updateAnimations(dt: number) {
+        if (this.currentAnim) {
+            this.frameTime += dt;
+            if (this.frameTime >= (this.currentAnim.speed || PlayerConfig.animation.defaultSpeed)) {
+                this.frameTime = 0;
+                this.frameIndex++;
+                
+                if (this.frameIndex >= this.currentAnim.frames.length) {
+                    if (this.currentAnim.loop) {
+                        this.frameIndex = 0;
+                    } else {
+                        this.playAnimation('idle');
+                        return;
+                    }
+                }
+
+                this.sprite.texture = this.currentAnim.frames[this.frameIndex];
+            }
+        }
+
+        // update animation state if not attacking
+        if (!this.currentAttack) {
+            if (!this.onGround) {
+                this.playAnimation('jump');
+            } else if (Math.abs(this.vx) > 0) {
+                this.playAnimation('walk');
+            } else {
+                this.playAnimation('idle');
+            }
+        }
+
+        // update facing direction
+        this.sprite.scale.x = this.facing;
+    }
+
+    private updateCombat(dt: number, kb: Keyboard) {
+        this.attackCooldown -= dt;
+        this.comboWindow = Math.max(0, this.comboWindow - dt);
+
+        if (this.attackCooldown <= 0) {
+            const jump = kb.isDown('arrowup') || kb.isDown('w') || kb.isDown(' ');
+            const down = kb.isDown('arrowdown') || kb.isDown('s');
+            
+            if (kb.isJustPressed('z')) {
+                if (jump && !this.onGround) {
+                    this.executeAttack('jump_kick');
+                } else if (down && kb.isHeld('arrowdown', 200)) {
+                    this.executeAttack('dive_kick');
+                } else {
+                    this.executeAttack('kick');
+                }
+            } else if (kb.isJustPressed('q')) {
+                this.executeAttack('jab');
+            } else if (kb.isJustPressed('s')) {
+                this.executeAttack('punch');
+            }
+        }
+    }
+
+    private playAnimation(name: string, force = false) {
+        // don't restart if already playing unless forced
+        if (!force && this.currentAnim?.name === name) return;
+        
+        const anim = this.animations[name];
+        if (!anim) {
+            console.warn(`Player animation "${name}" not found`);
+            return;
+        }
+
+        console.debug(`Player playing animation: ${name}`);
+        this.currentAnim = anim;
+        this.frameIndex = 0;
+        this.frameTime = 0;
+        this.sprite.texture = anim.frames[0];
+    }
+
+    reset() {
+        this.hp = PlayerConfig.combat.maxHp;
+        this.alive = true;
+        this.visible = true;
+        this.vx = 0;
+        this.vy = 0;
+        this.position.set(
+            PlayerConfig.position.initial.x,
+            PlayerConfig.position.initial.y
+        );
+        this.facing = 1;
+        this.currentAttack = null;
+        this.attackCooldown = 0;
+        this.comboWindow = 0;
+        this.playAnimation('idle');
+
+        if (this.hitBox) {
+            this.hitBox.destroy();
+            this.hitBox = undefined;
+        }
+    }
+
+    destroy(options?: { children?: boolean; texture?: boolean; baseTexture?: boolean; }) {
+        if (this.hitBox) {
+            this.hitBox.destroy();
+            this.hitBox = undefined;
+        }
+        super.destroy(options);
+    }
+
+    public knockback(fromX: number) {
+        if (!this.alive) return;
+        const direction = this.x < fromX ? -1 : 1;
+        this.x += direction * PlayerConfig.visual.knockbackAmount;
+    }
+
+    public damage(amount: number) {
+        if (!this.alive) return;
         this.hp = Math.max(0, this.hp - amount);
-        // visual feedback
-        this.body.tint = 0xff6262;
-        setTimeout(() => (this.body.tint = 0xffffff), 90);
+        this.sprite.tint = PlayerConfig.visual.damageFlashColor;
+        setTimeout(
+            () => (this.sprite.tint = PlayerConfig.visual.normalTint), 
+            PlayerConfig.combat.hitFlashDuration
+        );
+        this.playAnimation('hurt', true);
 
         if (this.hp <= 0) {
             this.die();
         }
     }
 
-    die() {
+    public die() {
         this.alive = false;
         this.visible = false; // dead anim later
         this.parent?.removeChild(this);
         this.destroy({ children: true, texture: true });
+    }
+
+    public get isAttacking(): boolean {
+        return this.currentAttack !== null;
+    }
+
+    public get bounds(): Rectangle {
+        return new Rectangle(
+            this.x - PlayerConfig.dimensions.width/2,
+            this.y - PlayerConfig.dimensions.height,
+            PlayerConfig.dimensions.width,
+            PlayerConfig.dimensions.height
+        );
     }
 
     get ratio() {
