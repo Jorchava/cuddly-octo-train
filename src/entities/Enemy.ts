@@ -202,17 +202,23 @@ export class Enemy extends Container {
         this.knockback(this.x);
 
         if (this.hp <= 0) {
-            setTimeout(() => this.die(), 200);
+            const hurtDuration = (this.animations.hurt?.frames.length || 2) * 
+                           (this.animations.hurt?.speed || EnemyConfig.animation.defaultSpeed) * 1000;
+            setTimeout(() => this.die(), hurtDuration);
         }
     }
 
     die() {
         if (!this.alive) return;
 
-        this.playAnimation('hurt', true);
+        
         this.alive = false;
+        this.vx = 0;
+        this.isAttacking = false;
 
-        const hurtDuration = (this.animations.hurt?.frames.length || 2) * 
+        this.playAnimation('hurt', true);
+
+        const animDuration = (this.animations.hurt?.frames.length || 2) * 
                            (this.animations.hurt?.speed || EnemyConfig.animation.defaultSpeed) * 1000;
 
         setTimeout(() => {
@@ -221,7 +227,7 @@ export class Enemy extends Container {
                 this.parent.removeChild(this);
             }
             this.destroy({ children: true });
-        }, hurtDuration);
+        }, animDuration);
     }
 
     public get bounds(): Rectangle {
