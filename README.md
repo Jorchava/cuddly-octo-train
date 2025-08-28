@@ -1,14 +1,14 @@
 # Beat-em-up Demo (PixiJS + TypeScript)
 
-A simple **2D beat-em-up extract** (Yie-Ar KungFu-like ish early stuff of the beat'em ups) built with [PixiJS](https://pixijs.com/) and TypeScript. At that time it was v5-v6 and vanilla JS but did some upgrades to use v8 and TS 
-This project was created as a technical demo to showcase **game loop design, entity systems, collision handling, PixiJS(WebGL) Javascript game engine and project structure**. Intentionally there are a couple of comments left in the source code so that other than version controlling we can tell some of the challenges faced while upgrading to v8 and refactoring.
+A simple **2D beat-em-up extract** (Yie-Ar KungFu-like ish early stuff of the beat'em ups) built with [PixiJS](https://pixijs.com/) and TypeScript. At that time the project was v5 and vanilla JS but did some upgrades to use v8 and TS 
+This project was created as a technical demo version of a project worked some years ago to showcase **game loop design, entity systems, collision handling, PixiJS(WebGL) Javascript game engine and project structure**.
 
 ---
 
 ## 🎮 Features
 
 - **Player movement** (arrow keys / WASD)  
-- **Basic attack system** (player can damage enemy with hitbox: S, Space bar jump attack combo, Q)  
+- **Basic attack system** (player can damage enemy with hitbox: S, Space bar + Z jump attack combo, Q, Z, and Arrow down long press + Z dive kick attack combo)  
 - **Enemy AI**: enemy chases player while alive  
 - **Collision system**: player hitbox detects overlap with enemy  
 - **Health system**: entities take damage, knockback, and can die  
@@ -44,6 +44,10 @@ This project was created as a technical demo to showcase **game loop design, ent
 ## 📦 Project Structure
 
 ```
+/public
+  /assets
+    /player
+    /enemy
 /src
   /core
     Keyboard.ts
@@ -84,7 +88,7 @@ This work is licensed under a
 ```bash
 git clone https://github.com/Jorchava/cuddly-octo-train.git
 
-cd beat-em-up
+cd cuddly-octo-train/
 
 npm install
 
