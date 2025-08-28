@@ -9,10 +9,14 @@ export const EnemyConfig = {
     },
     combat: {
         maxHp: 60,
-        attackRate: 0.5,
+        attackRate: 1.25,
         attackDamage: 8,
         attackRange: 50,
-        hitFlashDuration: 90
+        hitFlashDuration: 90,
+        attackAnimationTiming: {
+            hitboxStart: 0.4,
+            hitboxDuration: 0.3
+        }
     },
     animation: {
         defaultSpeed: 0.1,

@@ -10,7 +10,7 @@ import { AnimationManager } from './core/AnimationManager';
 
 (async function start() {
     await Assets.init({
-        basePath: '/'
+        basePath: './'
     });
     const app = new Application();
     await app.init({

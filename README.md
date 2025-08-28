@@ -22,13 +22,13 @@ This project was created as a technical demo to showcase **game loop design, ent
   - `main.ts` → Game loop, spawning, high-level orchestration  
 
 - **Next features:** 
-1. Assets 
-2. initial screen with music and in game music 
-3. game over screen / retry
-4. collision unit test
-5. custom shader (WebGL)
+1. ~~Assets~~ 
+2. Initial screen with music and in game music 
+3. Game over screen / retry
+4. Collision unit test
+5. Custom shader (WebGL)
 6. AI and weapongs for different enemies 
-7. explore json atlases for assets switch
+7. Explore json atlases for assets switch
 
 ---
 

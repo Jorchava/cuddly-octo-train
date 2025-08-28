@@ -37,6 +37,7 @@ export class Player extends Container {
             PlayerConfig.animation.spriteAnchor.x,
             PlayerConfig.animation.spriteAnchor.y
         );
+        this.scale.set(2);
         this.addChild(this.sprite);
         this.position.set(
             PlayerConfig.position.initial.x,
@@ -126,10 +127,13 @@ export class Player extends Container {
         
         const hb = new Graphics()
             .fill(PlayerConfig.visual.hitboxColor)
-            .rect(0, 0, config.width, config.height)
+            .rect(0, 0, config.width * this.scale.x, config.height * this.scale.y)
             .fill();
 
-        hb.position.set(this.x + offsetX, this.y - config.height * 1.4);
+        hb.position.set(
+            this.x + offsetX * this.scale.x, 
+            this.y - config.height * this.scale.y * 1.4
+        );
         hb.alpha = PlayerConfig.visual.hitboxAlpha;
         this.parent?.addChild(hb);
         this.hitBox = hb;
@@ -155,7 +159,6 @@ export class Player extends Container {
             }
         }
 
-        // update animation state if not attacking
         if (!this.currentAttack) {
             if (!this.onGround) {
                 this.playAnimation('jump');
@@ -166,7 +169,6 @@ export class Player extends Container {
             }
         }
 
-        // update facing direction
         this.sprite.scale.x = this.facing;
     }
 
@@ -195,7 +197,6 @@ export class Player extends Container {
     }
 
     private playAnimation(name: string, force = false) {
-        // don't restart if already playing unless forced
         if (!force && this.currentAnim?.name === name) return;
         
         const anim = this.animations[name];
@@ -262,11 +263,22 @@ export class Player extends Container {
         }
     }
 
-    public die() {
+    die() {
+        if (!this.alive) return;
+        
+        this.playAnimation('hurt', true);
         this.alive = false;
-        this.visible = false; // dead anim later
-        this.parent?.removeChild(this);
-        this.destroy({ children: true, texture: true });
+
+        const hurtDuration = (this.animations.hurt?.frames.length || 2) * 
+                           (this.animations.hurt?.speed || PlayerConfig.animation.defaultSpeed) * 1000;
+
+        setTimeout(() => {
+            this.visible = false;
+            if (this.parent) {
+                this.parent.removeChild(this);
+            }
+            this.destroy({ children: true });
+        }, hurtDuration);
     }
 
     public get isAttacking(): boolean {
