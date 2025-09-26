@@ -1,3 +1,15 @@
+/**
+ * Main game entry point demonstrating PixiJS v8 features:
+ * - New Application initialization
+ * - WebGL 2 context usage
+ * - Improved asset loading
+ * - Better rendering pipeline
+ * 
+ * Migration from v5:
+ * - Removed PIXI.Application constructor options
+ * - Uses new init pattern for better asset loading
+ * - Implements new filter system
+ */
 import { Application, Graphics, Filter, Assets } from 'pixi.js';
 import { Keyboard } from './core/Keyboard';
 import { PlayerConfig } from './config/PlayerConfig';
@@ -9,6 +21,7 @@ import { CRTFilter } from '@pixi/filter-crt';
 import { AnimationManager } from './core/AnimationManager';
 
 (async function start() {
+    // init asset loading system v8 style
     await Assets.init({
         basePath: './'
     });
@@ -16,8 +29,8 @@ import { AnimationManager } from './core/AnimationManager';
     await app.init({
         width: 960,
         height: 540,
-        background: 0x0f0f10,
-        antialias: false
+        background: 0x0f0f10, // read that better performance with hex 
+        antialias: false // Disabled for pixel-perfect rendering
     });
 
     document.getElementById('game-container')!.appendChild(app.canvas);
@@ -34,6 +47,13 @@ import { AnimationManager } from './core/AnimationManager';
         .fill();
     app.stage.addChild(bg, ground);
 
+    /**
+     * CRT filter implementation showcasing v8's new filter system
+     * Notable improvements:
+     * - Better shader compilation
+     * - Improved WebGL state management
+     * - More efficient uniform updates
+     */
     const crt = new CRTFilter({
         curvature: 2,
         lineWidth: 1.5,

@@ -1,10 +1,22 @@
+/**
+ * Health bar UI component using PixiJS v8 Graphics
+ * Demonstrates:
+ * - Efficient shape drawing
+ * - Better memory usage
+ * - Improved render batching
+ */
 import { Container, Graphics, Text } from 'pixi.js';
 export class HealthBar extends Container {
     private bg: Graphics;
     private fg: Graphics;
     private w: number;
     private h: number;
-
+    /**
+     * Creates a new health bar
+     * @param width Bar width in pixels
+     * @param height Bar height in pixels
+     * @param label Text to display above bar
+     */
     constructor(width = 220, height = 12, label?: string) {
         super();
         this.w = width;

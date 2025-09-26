@@ -1,3 +1,8 @@
+/**
+ * Player configuration constants
+ * Centralized game balance settings for easier tuning
+ * Uses TypeScript's const assertions for type safety
+ */
 export type AttackType = 'jab' | 'punch' | 'kick' | 'jump_kick' | 'dive_kick';
 
 interface HitboxConfig {
@@ -28,6 +33,8 @@ export const PlayerConfig = {
         hitFlashDuration: 90,
         comboWindowDuration: 0.5,
         attacks: {
+            // Attack configurations with hitbox data
+            // Balanced for fighting game feel
             jab: { 
                 duration: 0.3,
                 hitbox: { width: 25, height: 15, offsetX: 20, damage: 5 }

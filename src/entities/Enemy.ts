@@ -1,21 +1,40 @@
+/**
+ * Enemy entity class demonstrating PixiJS v8 sprite and animation handling.
+ * Key improvements from v5:
+ * - Better texture management
+ * - Improved sprite batching
+ * - More efficient state updates
+ */
 import { Container, Sprite, Graphics, Rectangle } from 'pixi.js';
 import { Player } from './Player';
 import { AnimationSequence } from '../core/AnimationManager';
 import { EnemyConfig } from '../config/EnemyConfig';
 import { intersects } from '../systems/CollisionSystem';
 export class Enemy extends Container {
+    /**
+     * Sprite and animation properties utilizing v8's new sprite system
+     * Benefits:
+     * - Improved batching through texture atlases
+     * - Better memory management
+     * - More efficient GPU state changes
+     */
     private sprite: Sprite;
     private animations: Record<string, AnimationSequence>;
     private currentAnim?: AnimationSequence;
     private frameIndex = 0;
     private frameTime = 0;
-    private facing = -1;
-    private vx = 0;
+
+    // combat steat management
+    private isAttacking = false;
     private attackCooldown = EnemyConfig.combat.attackRate;
     private tintTimeout?: ReturnType<typeof setTimeout>;
-    private isAttacking = false;
+
+    //physics and movement properties
+    private facing = -1;
+    private vx = 0;
     private hitBox?: Graphics;
 
+    // public API for game state
     public hp: number = EnemyConfig.combat.maxHp;
     public readonly maxHp = EnemyConfig.combat.maxHp;
     public alive = true;
@@ -155,6 +174,7 @@ export class Enemy extends Container {
             const hitboxHeight = 20 * this.scale.y;
             const hitboxOffsetX = this.facing > 0 ? 24 : -24 - hitboxWidth;
             
+            //v8 instead of the begin and end fill
             const hb = new Graphics()
                 .fill(0xffd166)
                 .rect(0, 0, hitboxWidth, hitboxHeight)

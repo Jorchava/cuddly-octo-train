@@ -1,3 +1,14 @@
+/**
+ * Player entity implementing PixiJS v8 features:
+ * - Advanced sprite manipulation
+ * - Efficient animation system
+ * - WebGL 2 optimizations
+ * 
+ * Notable v8 improvements:
+ * - Better texture management
+ * - Improved render batching
+ * - More efficient state updates
+ */
 import { Container, Graphics, Sprite, Rectangle } from 'pixi.js';
 import { Keyboard } from '../core/Keyboard';
 import { AnimationSequence } from '../core/AnimationManager';
@@ -55,7 +66,12 @@ export class Player extends Container {
         this.updatePhysics(dt, floorY);
         this.updateHitbox(dt);
     }
-
+    /**
+     * Updates player movement and facing direction
+     * @param dt Delta time for frame-independent movement
+     * @param kb Keyboard input handler
+     * @param enemy Optional enemy reference for auto-facing
+     */
     private updateMovement(dt: number, kb: Keyboard, enemy?: Container) {
         const left = kb.isDown('arrowleft') || kb.isDown('a');
         const right = kb.isDown('arrowright') || kb.isDown('d');
@@ -105,6 +121,10 @@ export class Player extends Container {
         }
     }
 
+    /**
+     * Handles attack execution and hitbox creation
+     * Uses v8's improved Graphics API for better performance
+     */
     private executeAttack(type: AttackType) {
         const attackConfig = PlayerConfig.combat.attacks[type];
         this.currentAttack = type;

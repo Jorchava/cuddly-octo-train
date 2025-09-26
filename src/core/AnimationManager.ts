@@ -1,11 +1,27 @@
+/**
+ * Animation management system using PixiJS v8's new texture handling.
+ * Key differences from v5:
+ * - Uses Texture constructor instead of PIXI.Texture.from()
+ * - Handles source directly instead of baseTexture
+ * - Supports WebGL 2 batching improvements
+ */
+
 import { Assets, Rectangle, Texture } from 'pixi.js';
 import { EnemyConfig } from '../config/EnemyConfig';
 
+// Using as const for type safety and immutability.
 const SPRITE_CONFIG = {
     WIDTH: 96,
     HEIGHT: 63
 } as const;
 
+/**
+ * Interface defining animation sequence structure.
+ * @property name - Unique identifier for the animation
+ * @property frames - Array of textures representing animation frames
+ * @property loop - Whether animation should repeat
+ * @property speed - Frame duration in seconds
+ */
 export interface AnimationSequence {
     name: string;
     frames: Texture[];
@@ -14,6 +30,13 @@ export interface AnimationSequence {
 }
 
 export class AnimationManager {
+    /**
+     * Creates texture frames from a spritesheet.
+     * Major changes from v5:
+     * - Uses new Texture constructor syntax
+     * - Directly handles source instead of baseTexture
+     * - Better memory management through proper cleanup
+     */
     private static async createFrames(
         path: string,
         frameWidth: number,
@@ -21,6 +44,7 @@ export class AnimationManager {
         frameCount: number
     ): Promise<Texture[]> {
         try {
+            // Assets.load replaces PIXI.Loader from v5
             const baseTexture = await Assets.load(path);
             const frames: Texture[] = [];
 
@@ -31,7 +55,9 @@ export class AnimationManager {
                     frameWidth,
                     frameHeight
                 );
+                // PixiJS v8 syntax for texture creation
                 const frameTexture = new Texture({
+                    // v8 uses source instead of baseTexture
                     source: baseTexture.source,
                     frame: frame
                 });
@@ -46,6 +72,11 @@ export class AnimationManager {
         }
     }
 
+    /**
+     * Loads player animation sequences.
+     * Returns a map of animation names to their sequences.
+     * WebGL optimization: Creates textures that can be batched efficiently
+     */
     static async loadPlayerAnimations(): Promise<Record<string, AnimationSequence>> {
         const animations: Record<string, AnimationSequence> = {};
 
