@@ -26,7 +26,7 @@ This project was created as a technical demo version of a project worked some ye
 2. Initial screen with music and in game music 
 3. Game over screen / retry
 4. Collision unit test
-5. Custom shader (WebGL)
+5. ~~Custom shader (WebGL) / Fix the old tv CRT Filter~~
 6. AI and weapongs for different enemies 
 7. Explore json atlases for assets switch
 

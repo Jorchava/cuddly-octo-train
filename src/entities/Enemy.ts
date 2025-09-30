@@ -47,7 +47,7 @@ export class Enemy extends Container {
             EnemyConfig.animation.spriteAnchor.x,
             EnemyConfig.animation.spriteAnchor.y
         );
-        this.scale.set(2);
+        this.scale.set(4.25);
         this.addChild(this.sprite);
         this.position.set(x, y);
         this.playAnimation('idle');

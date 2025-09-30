@@ -48,7 +48,7 @@ export class Player extends Container {
             PlayerConfig.animation.spriteAnchor.x,
             PlayerConfig.animation.spriteAnchor.y
         );
-        this.scale.set(2);
+        this.scale.set(4);
         this.addChild(this.sprite);
         this.position.set(
             PlayerConfig.position.initial.x,
