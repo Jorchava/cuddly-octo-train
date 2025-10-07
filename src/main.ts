@@ -1,14 +1,27 @@
-import { Application, Graphics, Filter, Assets } from 'pixi.js';
+/**
+ * Main game entry point demonstrating PixiJS v8 features:
+ * - New Application initialization
+ * - WebGL 2 context usage
+ * - Improved asset loading
+ * - Better rendering pipeline
+ * 
+ * Migration from v5:
+ * - Removed PIXI.Application constructor options
+ * - Uses new init pattern for better asset loading
+ * - Implements new filter system
+ */
+import { Application, Graphics, Assets } from 'pixi.js';
 import { Keyboard } from './core/Keyboard';
 import { PlayerConfig } from './config/PlayerConfig';
 import { Player } from './entities/Player';
 import { Enemy } from './entities/Enemy';
 import { intersects } from './systems/CollisionSystem';
 import { HealthBar } from './ui/HealthBar';
-import { CRTFilter } from '@pixi/filter-crt';
+import { CRTFilter } from 'pixi-filters';
 import { AnimationManager } from './core/AnimationManager';
 
 (async function start() {
+    // init asset loading system v8 style
     await Assets.init({
         basePath: './'
     });
@@ -16,8 +29,8 @@ import { AnimationManager } from './core/AnimationManager';
     await app.init({
         width: 960,
         height: 540,
-        background: 0x0f0f10,
-        antialias: false
+        background: 0x0f0f10, // read that better performance with hex 
+        antialias: false // Disabled for pixel-perfect rendering
     });
 
     document.getElementById('game-container')!.appendChild(app.canvas);
@@ -34,13 +47,20 @@ import { AnimationManager } from './core/AnimationManager';
         .fill();
     app.stage.addChild(bg, ground);
 
+    /**
+     * CRT filter implementation showcasing v8's new filter system
+     * Notable improvements:
+     * - Better shader compilation
+     * - Improved WebGL state management
+     * - More efficient uniform updates
+     */
     const crt = new CRTFilter({
-        curvature: 2,
-        lineWidth: 1.5,
-        lineContrast: 0.25,
-        verticalLine: true
+        lineWidth: 3,
+        lineContrast: 0.3,
+        noise: 0.1,
+        time: 0.5,
     });
-    app.stage.filters = [crt as unknown as Filter];
+    app.stage.filters = [crt];
 
     const playerAnimations = await AnimationManager.loadPlayerAnimations();
     const enemyAnimations = await AnimationManager.loadEnemyAnimations();
@@ -68,6 +88,10 @@ import { AnimationManager } from './core/AnimationManager';
 
     app.ticker.add((ticker) => {
         const dt = ticker.deltaTime / 60;
+
+        // Animate the CRT filter
+        crt.seed = Math.random(); // Update the seed for a random static noise effect
+        crt.time += 0.5; // Increment the time for the scanline effect
 
         if (player.alive) player.update(dt, kb, FLOOR_Y, enemy);
         if (enemy.alive) enemy.update(dt, player);

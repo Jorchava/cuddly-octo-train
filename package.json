@@ -11,13 +11,14 @@
     "pixijs",
     "webgl",
     "pixi",
-    "HTML5 game"
+    "HTML5 game",
+    "beat em'up web game"
   ],
   "author": "jorchava",
   "license": "CC-BY-4.0",
   "description": "Beat'em up scene using PixiJS @latest ts vite",
   "dependencies": {
-    "@pixi/filter-crt": "^5.1.1",
+    "pixi-filters": "^6.1.4",
     "pixi.js": "^8.12.0"
   },
   "devDependencies": {
