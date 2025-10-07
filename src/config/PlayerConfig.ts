@@ -24,7 +24,7 @@ export const PlayerConfig = {
     },
     movement: {
         speed: 220,
-        jumpStrength: 460,
+        jumpStrength: 690,
         gravity: 1200
     },
     combat: {
