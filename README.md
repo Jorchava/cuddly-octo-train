@@ -28,7 +28,9 @@ This project was created as a technical demo version of a project worked some ye
 4. Collision unit test
 5. ~~Custom shader (WebGL) / Fix the old tv CRT Filter~~
 6. AI and weapongs for different enemies 
-7. Explore json atlases for assets switch
+7. Score system that carries over next scene vs next enemy
+8. Explore json atlases for assets switch
+9. Beat all enemies and start over in harder mode
 
 ---
 

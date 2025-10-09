@@ -14,7 +14,7 @@ export const EnemyConfig = {
     },
     // movement and AI behavior setting
     movement: {
-        speed: 80, // units per s
+        speed: 200, // units per s
         detectionRange: 50 // distance to detect player
     },
     // combat mechanics config

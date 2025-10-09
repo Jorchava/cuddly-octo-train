@@ -68,7 +68,7 @@ export class Enemy extends Container {
                 this.vx = 0;
                 this.playAnimation('idle');
             }
-
+            // not attacking apply movement
             this.x += this.vx * dt;
         }
 

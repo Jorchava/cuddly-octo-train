@@ -24,8 +24,9 @@ export class Player extends Container {
     // Combat properties
     private comboWindow = 0;
     private currentAttack: AttackType | null = null;
-    private attackCooldown = 0;
+    private attackCooldown: number = PlayerConfig.combat.attackCooldown;
     private hitBox?: Graphics;
+    private hasHit = false;
 
     // Physics properties
     private vx = 0;
@@ -60,6 +61,9 @@ export class Player extends Container {
     update(dt: number, kb: Keyboard, floorY: number, enemy?: Container) {
         if (!this.alive) return;
 
+        // update cooldown
+        this.attackCooldown = Math.max(0, this.attackCooldown - dt);
+
         this.updateMovement(dt, kb, enemy);
         this.updateCombat(dt, kb);
         this.updateAnimations(dt);
@@ -73,8 +77,8 @@ export class Player extends Container {
      * @param enemy Optional enemy reference for auto-facing
      */
     private updateMovement(dt: number, kb: Keyboard, enemy?: Container) {
-        const left = kb.isDown('arrowleft') || kb.isDown('a');
-        const right = kb.isDown('arrowright') || kb.isDown('d');
+        const left = !this.isAttacking && (kb.isDown('arrowleft') || kb.isDown('a'));
+        const right = !this.isAttacking && (kb.isDown('arrowright') || kb.isDown('d'));
         const jump = kb.isDown('arrowup') || kb.isDown('w') || kb.isDown(' ');
 
         if (left && !right) {
@@ -126,15 +130,20 @@ export class Player extends Container {
      * Uses v8's improved Graphics API for better performance
      */
     private executeAttack(type: AttackType) {
+        if (!this.alive || this.attackCooldown > 0) return;
+
         const attackConfig = PlayerConfig.combat.attacks[type];
         this.currentAttack = type;
         this.playAnimation(type, true);
+        this.hasHit = false;
         this.swing();
-        this.attackCooldown = attackConfig.duration;
+
+        this.attackCooldown = PlayerConfig.combat.attackCooldown;
         
         setTimeout(() => {
             if (this.currentAttack === type) {
                 this.currentAttack = null;
+                this.hasHit = false;
             }
         }, attackConfig.duration * 1000);
     }
@@ -262,6 +271,14 @@ export class Player extends Container {
         super.destroy(options);
     }
 
+    public registerHit() {
+        this.hasHit = true;
+        if (this.hitBox) {
+            this.hitBox.destroy();
+            this.hitBox = undefined;
+        }
+    }
+
     public knockback(fromX: number) {
         if (!this.alive) return;
         const direction = this.x < fromX ? -1 : 1;
@@ -314,7 +331,15 @@ export class Player extends Container {
         );
     }
 
-    get ratio() {
+    public get hasHitTarget(): boolean {
+        return this.hasHit;
+    }
+
+    public get currentAttackType(): AttackType | null {
+        return this.currentAttack;
+    }
+
+    public get ratio() {
         return this.hp / this.maxHp;
     }
 }

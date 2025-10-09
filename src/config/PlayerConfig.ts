@@ -23,37 +23,38 @@ export const PlayerConfig = {
         height: 64
     },
     movement: {
-        speed: 220,
-        jumpStrength: 690,
-        gravity: 1200
+        speed: 290,
+        jumpStrength: 990,
+        gravity: 1900
     },
     combat: {
         maxHp: 100,
         hitboxFadeSpeed: 3,
         hitFlashDuration: 90,
         comboWindowDuration: 0.5,
+        attackCooldown: 1,
         attacks: {
             // Attack configurations with hitbox data
             // Balanced for fighting game feel
             jab: { 
                 duration: 0.3,
-                hitbox: { width: 25, height: 15, offsetX: 20, damage: 5 }
+                hitbox: { width: 15, height: 15, offsetX: 20, damage: 3 }
             },
             punch: { 
                 duration: 0.4,
-                hitbox: { width: 30, height: 20, offsetX: 24, damage: 8 }
+                hitbox: { width: 18, height: 18, offsetX: 24, damage: 4 }
             },
             kick: { 
                 duration: 0.5,
-                hitbox: { width: 35, height: 20, offsetX: 28, damage: 10 }
+                hitbox: { width: 20, height: 20, offsetX: 8, damage: 5 }
             },
             jump_kick: { 
                 duration: 0.6,
-                hitbox: { width: 40, height: 25, offsetX: 30, damage: 15 }
+                hitbox: { width: 25, height: 25, offsetX: 25, damage: 6 }
             },
             dive_kick: { 
                 duration: 0.7,
-                hitbox: { width: 35, height: 30, offsetX: 25, damage: 12 }
+                hitbox: { width: 25, height: 25, offsetX: 25, damage: 7 }
             }
         } as Record<AttackType, AttackConfig>
     },

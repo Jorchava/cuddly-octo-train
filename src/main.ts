@@ -96,10 +96,11 @@ import { AnimationManager } from './core/AnimationManager';
         if (player.alive) player.update(dt, kb, FLOOR_Y, enemy);
         if (enemy.alive) enemy.update(dt, player);
 
-        if (player.alive && enemy.alive && player.isAttacking && intersects(player, enemy)) {
-            const currentAttack = PlayerConfig.combat.attacks.punch;
-            enemy.damage(currentAttack.hitbox.damage);
+        if (player.alive && enemy.alive && player.isAttacking && !player.hasHitTarget && intersects(player, enemy)) {
+            const attackConfig = PlayerConfig.combat.attacks[player.currentAttackType!];
+            enemy.damage(attackConfig.hitbox.damage);
             enemy.knockback(player.x);
+            player.registerHit();
         }
 
         playerHB.setRatio(player.ratio);
